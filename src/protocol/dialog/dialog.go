@@ -1,22 +1,41 @@
 package dialog
 
 type Dialog struct {
-	Title string
+	Title       string
+	Description string
 }
 
 func (dialog *Dialog) SerializeDialog() []byte {
-	return []byte{
-		0x0a,
-		0x08,
-		0x00, 0x05,
-		0x74, 0x69, 0x74, 0x6c, 0x65,
-		0x00, 0x07,
-		0x42, 0x61, 0x6e, 0x72, 0x61, 0x6d, 0x61,
-		0x08,
-		0x00, 0x04,
-		0x74, 0x79, 0x70, 0x65,
-		0x00, 0x10,
-		0x6d, 0x69, 0x6e, 0x65, 0x63, 0x72, 0x61, 0x66, 0x74, 0x3a, 0x6e, 0x6f, 0x74, 0x69, 0x63, 0x65,
-		0x00,
-	}
+	return serializeNbt(&struct {
+		Type      string
+		Title     string
+		Body      []any
+		Closeable uint8 `nbt:"can_close_with_escape"`
+		Columns   uint32
+	}{
+		Type:  "minecraft:notice",
+		Title: dialog.Title,
+		Body: []any{
+			struct {
+				Type string
+				Item any
+			}{
+				Type: "minecraft:item",
+				Item: struct {
+					Id string
+				}{
+					Id: "minecraft:clock",
+				},
+			},
+			struct {
+				Type     string
+				Contents string
+			}{
+				Type:     "minecraft:plain_message",
+				Contents: dialog.Description,
+			},
+		},
+		Closeable: 0,
+		Columns:   0,
+	})
 }

@@ -48,6 +48,25 @@ func SerializeString(str string) []byte {
 	return buffer.Bytes()
 }
 
+func SerializeNbtString(str string) []byte {
+	var buffer bytes.Buffer
+
+	buffer.Write(SerializeUnsignedShort(uint16(len(str))))
+
+	unmodifiedEncoding := []byte(str)
+
+	for _, b := range unmodifiedEncoding {
+		if b&0x80 == 0 && b != 0 {
+			buffer.WriteByte(b)
+		} else {
+			buffer.WriteByte(0b11000000 | ((0b11000000 & b) >> 6))
+			buffer.WriteByte(0b10000000 | (0b00111111 & b))
+		}
+	}
+
+	return buffer.Bytes()
+}
+
 func ParseUnsignedShort(buffer []byte) (uint16, []byte, error) {
 	if len(buffer) < 2 {
 		return 0, nil, errors.New("remaining buffer too short to store an unsigned short")
@@ -58,6 +77,18 @@ func ParseUnsignedShort(buffer []byte) (uint16, []byte, error) {
 
 func SerializeUnsignedShort(num uint16) []byte {
 	return binary.BigEndian.AppendUint16(nil, num)
+}
+
+func ParseUnsignedInt(buffer []byte) (uint32, []byte, error) {
+	if len(buffer) < 4 {
+		return 0, nil, errors.New("remaining buffer too short to store an unsigned int")
+	}
+
+	return binary.BigEndian.Uint32(buffer[:4]), buffer[4:], nil
+}
+
+func SerializeUnsignedInt(num uint32) []byte {
+	return binary.BigEndian.AppendUint32(nil, num)
 }
 
 func ParseUnsignedLong(buffer []byte) (uint64, []byte, error) {

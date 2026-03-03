@@ -6,6 +6,7 @@ import (
 	"mginx/config"
 	"mginx/connections/upstream"
 	"mginx/models"
+	"mginx/protocol/dialog"
 	util "mginx/protocol/internal"
 	"mginx/protocol/parsing"
 	"mginx/protocol/payloads"
@@ -126,7 +127,10 @@ func handleClientLoginAcknowledged(client *models.DownstreamClient, packet paylo
 		Id: client.ExpectedKeepalive,
 	}))
 
-	//client.Connection.Write(serializing.SerializeShowDialog(payloads.ShowDialog{}))
+	client.Connection.Write(serializing.SerializeShowDialog(payloads.ShowDialog{Dialog: dialog.Dialog{
+		Title:       "Server Startup",
+		Description: "The server is starting up.\n\nYou will be connected shortly.\n\nPlease wait...",
+	}}))
 
 	return nil
 }
