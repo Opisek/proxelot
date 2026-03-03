@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"mginx/config"
 	"mginx/connections/downstream"
 	"mginx/connections/watchdog"
@@ -11,7 +13,17 @@ import (
 )
 
 func main() {
-	conf := config.ReadConfig()
+	// Parse all configuration and environmental variables
+	port, configPath, err := config.ParseEnvironmentalVariables()
+	if err != nil {
+		fmt.Println(errors.Join(errors.New("could not parse environmental variables"), err))
+		return
+	}
+	conf, err := config.ReadConfig(configPath)
+	if err != nil {
+		fmt.Println(errors.Join(errors.New("could not parse configuration file"), err))
+		return
+	}
 
 	// Watch managed servers
 	for _, server := range conf.Servers {
@@ -28,5 +40,5 @@ func main() {
 	go downstream.HandlePackets(packetQueue, conf)
 
 	// Handle connections
-	downstream.StartServer("localhost", 25565, packetQueue, conf)
+	downstream.StartServer("localhost", port, packetQueue, conf)
 }

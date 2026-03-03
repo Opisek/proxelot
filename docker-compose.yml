@@ -1,0 +1,19 @@
+services:
+  mginx:
+    container_name: mginx
+    image: opisek/mginx
+    volumes:
+      - /srv/mginx/scripts:/app/scripts:ro
+      - /srv/mginx/config.yml:/app/config.yml:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    network_mode: host
+    ports:
+      - 25565:25565
+    environment:
+      - CONFIG=./config.yml
+      - PORT=25565
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
