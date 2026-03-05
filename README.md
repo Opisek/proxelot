@@ -251,7 +251,7 @@ done
 Remember to fill in `YOUR_USERNAME_HERE`.
 
 4. Set up the daemon service. On systemd-based distributions (like Debian or Ubuntu) this can be done by creating the file `/etc/systemd/system/proxylotl-helper.service`:
-```sh
+```ini
 [Unit]
 Description=Proxylotl helper service for starting and stopping containers
 
