@@ -34,7 +34,7 @@ servers:
   modded:
     from:
       - modded.example.com
-    to: 1.2.3.4:25567
+    to: example.com:25568
     redirect: true
     watchdog:
       start: "./scripts/modded/start.sh"
