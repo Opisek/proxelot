@@ -267,7 +267,7 @@ WantedBy=default.target
 
 Remember to fill in `YOUR_USERNAME_HERE`.
 
-5. Start your daemon service. On systemd-based distributions this can be done as follows|:
+5. Start your daemon service. On systemd-based distributions this can be done as follows:
 ```sh
 sudo systemctl daemon-reload
 sudo systemctl enable proxelot-helper
