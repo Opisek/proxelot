@@ -7,6 +7,7 @@ servers:
   # for example if you only want to forward a single port.
   survival:
     from:
+      - example.com
       - survival.example.com
     to: localhost:25566
 
