@@ -135,7 +135,7 @@ servers:
     to: example.com:25567
 ```
 
-An alternative is to use "redirects" otherwise known as "transfers. In this case, Proxylotl will instruct the client to connect directly to the upstream server:
+An alternative is to use "redirects" otherwise known as "transfers". In this case, Proxylotl will instruct the client to connect directly to the upstream server:
 
 ```yml
 servers:
@@ -152,6 +152,11 @@ servers:
 ```
 
 For this to succeed, you must ensure that the upstream server is accessible from the internet, for example by forwarding its port as well.
+
+Furthermore, you must enable transfers in the upstream server's `server.properties`:
+```ini
+accept-transfers=true
+```
 
 In this setup, no overhead or latency is introduced, since after connecting to the server, Proxylotl is no longer involved in the clients' connections.
 
