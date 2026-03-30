@@ -61,6 +61,10 @@ func handleClientConnection(conn net.Conn, packetQueue chan util.Pair[*models.Do
 		// All the following code applies only prior to the client connecting to the upstream
 
 		buffer.Write(data[:n]) // We must buffer incoming TCP packets until we have at least one complete Minecraft packet
+		if buffer.Len() > 1024*1024*1024 {
+			client.Kill()
+			return
+		}
 
 		// Check if we have buffered enough data to parse one or more complete packets
 		for {
@@ -68,12 +72,20 @@ func handleClientConnection(conn net.Conn, packetQueue chan util.Pair[*models.Do
 			if err != nil {
 				break
 			}
+			if packet.Length > 1024*1024*1024 {
+				client.Kill()
+				break
+			}
 			if packet.Length > packet.ActualLength {
 				break
 			}
 
 			remainingPayload := packet.Payload
-			cutIndex := uint64(len(remainingPayload)) - (packet.ActualLength - packet.Length)
+			cutIndex := int32(len(remainingPayload)) - int32(packet.ActualLength-packet.Length)
+			if cutIndex < 0 {
+				client.Kill()
+				return
+			}
 
 			packet.Payload = make([]byte, cutIndex)
 			copy(packet.Payload, remainingPayload[:cutIndex])

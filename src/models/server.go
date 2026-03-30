@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"sync"
@@ -75,6 +76,7 @@ type watchdogConfiguration struct {
 	GraceTime    uint   `yaml:"grace"`
 
 	LastStatusResponse []byte `yaml:""`
+	statusPath         string `yaml:""`
 
 	startupChannel chan bool `yaml:""`
 	startupQueued  bool      `yaml:""`
@@ -84,8 +86,46 @@ func (watchdog *watchdogConfiguration) IsManaged() bool {
 	return watchdog.GraceTime != 0
 }
 
-func (watchdog *watchdogConfiguration) RegisterWatchdog(startupChannel chan bool) {
+func (watchdog *watchdogConfiguration) RegisterWatchdog(startupChannel chan bool, statusPath string) {
 	watchdog.startupChannel = startupChannel
+	watchdog.statusPath = statusPath
+	watchdog.LoadStatus()
+}
+
+func (watchdog *watchdogConfiguration) SaveStatus() {
+	file, err := os.Create(watchdog.statusPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "could not open server status file %v for writing: %v", watchdog.statusPath, err)
+		return
+	}
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "could not close server status file %v: %v", watchdog.statusPath, err)
+		}
+	}()
+
+	if _, err = file.Write(watchdog.LastStatusResponse); err != nil {
+		fmt.Fprintf(os.Stderr, "could not write server status to file %v: %v", watchdog.statusPath, err)
+	}
+}
+
+func (watchdog *watchdogConfiguration) LoadStatus() {
+	file, err := os.Open(watchdog.statusPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "could not open server status file %v for reading: %v", watchdog.statusPath, err)
+		return
+	}
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "could not close server status file %v: %v", watchdog.statusPath, err)
+		}
+	}()
+
+	if _, err = file.Read(watchdog.LastStatusResponse); err != nil {
+		fmt.Fprintf(os.Stderr, "could not read server status from file %v: %v", watchdog.statusPath, err)
+	}
 }
 
 type UpstreamServer struct {
