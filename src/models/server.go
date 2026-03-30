@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"sync"
@@ -75,6 +76,7 @@ type watchdogConfiguration struct {
 	GraceTime    uint   `yaml:"grace"`
 
 	LastStatusResponse []byte `yaml:""`
+	statusPath         string `yaml:""`
 
 	startupChannel chan bool `yaml:""`
 	startupQueued  bool      `yaml:""`
@@ -84,8 +86,25 @@ func (watchdog *watchdogConfiguration) IsManaged() bool {
 	return watchdog.GraceTime != 0
 }
 
-func (watchdog *watchdogConfiguration) RegisterWatchdog(startupChannel chan bool) {
+func (watchdog *watchdogConfiguration) RegisterWatchdog(startupChannel chan bool, statusPath string) {
 	watchdog.startupChannel = startupChannel
+	watchdog.statusPath = statusPath
+	watchdog.LoadStatus()
+}
+
+func (watchdog *watchdogConfiguration) SaveStatus() {
+	if err := os.WriteFile(watchdog.statusPath, watchdog.LastStatusResponse, 0666); err != nil {
+		fmt.Fprintf(os.Stderr, "Could not save server status to %v: %v\n", watchdog.statusPath, err)
+		return
+	}
+}
+
+func (watchdog *watchdogConfiguration) LoadStatus() {
+	var err error
+	if watchdog.LastStatusResponse, err = os.ReadFile(watchdog.statusPath); err != nil {
+		fmt.Fprintf(os.Stderr, "Could not load server status from %v: %v\n", watchdog.statusPath, err)
+		return
+	}
 }
 
 type UpstreamServer struct {

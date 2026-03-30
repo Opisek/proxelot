@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"proxylotl/connections/upstream"
 	"proxylotl/constants"
 	"proxylotl/models"
@@ -83,8 +84,9 @@ func checkStatus(server *models.UpstreamServer) (int, error) {
 	conn.Write(serializing.SerializeStatusRequest(payloads.StatusRequest{}))
 
 	result := <-res
-	if result.First != nil {
+	if result.First != nil && (len(server.Watchdog.LastStatusResponse) == 0 || !bytes.Equal(server.Watchdog.LastStatusResponse, result.First)) {
 		server.Watchdog.LastStatusResponse = result.First // If we have received a valid response, we cache it so that we may serve our clients
+		server.Watchdog.SaveStatus()
 	}
 
 	return result.Second, nil
@@ -96,7 +98,7 @@ func WatchUpstream(server *models.UpstreamServer) {
 	shutdownRequestTimestamp := time.Now()
 
 	startupChannel := make(chan bool)
-	server.Watchdog.RegisterWatchdog(startupChannel)
+	server.Watchdog.RegisterWatchdog(startupChannel, filepath.Join("/app/status", fmt.Sprintf("%v.json", server.InternalName)))
 
 	for {
 		var waitDuration time.Duration

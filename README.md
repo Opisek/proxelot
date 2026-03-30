@@ -23,8 +23,9 @@ Proxylotl is available as a Docker container. The recommended setup is to use a 
       container_name: proxylotl
       image: opisek/proxylotl:latest
       volumes:
-        - /srv/proxylotl/scripts:/app/scripts:ro
         - /srv/proxylotl/config.yml:/app/config.yml:ro
+        - /srv/proxylotl/scripts:/app/scripts:ro
+        - /srv/proxylotl/status:/app/status
         - /etc/localtime:/etc/localtime:ro
         - /etc/timezone:/etc/timezone:ro
       network_mode: host

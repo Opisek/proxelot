@@ -29,4 +29,9 @@ COPY --from=build /app/src/proxylotl .
 RUN addgroup -S proxylotl && adduser -S proxylotl -G proxylotl
 USER proxylotl
 
+# Default port and volumes
+EXPOSE 25565
+VOLUME [ "/scripts" ]
+VOLUME [ "/status" ]
+
 ENTRYPOINT [ "./proxylotl" ]
